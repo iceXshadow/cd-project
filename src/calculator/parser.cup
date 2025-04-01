@@ -1,0 +1,52 @@
+/* Calculator Parser */
+package calculator;
+
+import java_cup.runtime.*;
+
+/* Terminals (tokens from lexer) */
+terminal PLUS, MINUS, TIMES, DIVIDE, LPAREN, RPAREN, EQUALS, SEMI, UMINUS;
+terminal Object NUMBER;    // Changed to specify Object type for NUMBER
+
+/* Non-terminals */
+non terminal expr_list;
+non terminal expr_part;
+non terminal Object expr;  // Changed to specify Object type for expr
+
+/* Precedence declarations */
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE;
+precedence left UMINUS;
+
+/* Grammar rules */
+start with expr_list;
+
+expr_list ::= expr_list expr_part
+            | expr_part
+            ;
+
+expr_part ::= expr:e SEMI
+              {: System.out.println("Result: " + e); :}
+            ;
+
+expr      ::= expr:e1 PLUS expr:e2
+              {: RESULT = Double.valueOf(e1.toString()) + Double.valueOf(e2.toString()); :}
+            | expr:e1 MINUS expr:e2
+              {: RESULT = Double.valueOf(e1.toString()) - Double.valueOf(e2.toString()); :}
+            | expr:e1 TIMES expr:e2
+              {: RESULT = Double.valueOf(e1.toString()) * Double.valueOf(e2.toString()); :}
+            | expr:e1 DIVIDE expr:e2
+              {: 
+                 if (Double.valueOf(e2.toString()) == 0) {
+                   System.err.println("Error: Division by zero");
+                   RESULT = 0.0;
+                 } else {
+                   RESULT = Double.valueOf(e1.toString()) / Double.valueOf(e2.toString());
+                 }
+              :}
+            | MINUS expr:e                
+              {: RESULT = -Double.valueOf(e.toString()); :} %prec UMINUS
+            | LPAREN expr:e RPAREN
+              {: RESULT = e; :}
+            | NUMBER:n
+              {: RESULT = n; :}
+            ;

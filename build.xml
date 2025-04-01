@@ -1,0 +1,75 @@
+<project name="calculator-project" default="run" basedir=".">
+    <description>
+        Build file for the calculator project
+    </description>
+    
+    <!-- Global properties -->
+    <property name="src" location="src"/>
+    <property name="build" location="build"/>
+    <property name="lib" location="lib"/>
+    <property name="tools" location="tools"/>
+    
+    <!-- Make sure these JAR files are in your lib directory -->
+    <path id="classpath">
+        <fileset dir="${lib}">
+            <include name="**/*.jar"/>
+        </fileset>
+        <pathelement location="${build}"/>
+    </path>
+    
+    <!-- Initialize the build -->
+    <target name="init">
+        <mkdir dir="${build}"/>
+        <mkdir dir="${src}/calculator"/>
+    </target>
+    
+    <!-- Generate the lexer -->
+    <target name="jflex" depends="init">
+        <java jar="${tools}/jflex-full-1.9.1.jar" fork="true" failonerror="true">
+            <arg value="-d"/>
+            <arg value="${src}/calculator"/>
+            <arg value="${src}/calculator/lexer.flex"/>
+        </java>
+    </target>
+    
+    <!-- Generate the parser -->
+    <target name="cup" depends="init">
+        <java jar="${tools}/java-cup-11b.jar" fork="true" failonerror="true">
+            <arg value="-destdir"/>
+            <arg value="${src}/calculator"/>
+            <arg value="-parser"/>
+            <arg value="parser"/>
+            <arg value="-symbols"/>
+            <arg value="sym"/>
+            <arg value="D:/cd-project/src/calculator/parser.cup"/>
+        </java>
+    </target>
+    
+    <!-- Compile the source code -->
+    <target name="compile" depends="jflex,cup">
+        <javac srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true" source="1.8" target="1.8">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${lib}/java-cup-11b-runtime.jar"/>
+            </classpath>
+        </javac>
+    </target>
+    
+    <!-- Run the calculator -->
+    <target name="run" depends="compile">
+        <java classname="calculator.Calculator" fork="true">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${lib}/java-cup-11b-runtime.jar"/>
+            </classpath>
+        </java>
+    </target>
+    
+    <!-- Clean up -->
+    <target name="clean">
+        <delete dir="${build}"/>
+        <delete file="${src}/calculator/Lexer.java"/>
+        <delete file="${src}/calculator/parser.java"/>
+        <delete file="${src}/calculator/sym.java"/>
+    </target>
+</project>
